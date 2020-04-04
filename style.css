@@ -1,0 +1,217 @@
+
+html{
+  position: relative;
+min-height: 100%;
+}
+body{
+  background-color: #F7F2E3;
+  margin-left: 10vw;
+  margin-right: 10vw;
+  margin-bottom: 150px;
+  font-family: 'Roboto', sans-serif;
+}
+
+#tittel{
+  font-size: 60px;
+  text-align:center;
+  margin-bottom: 20px;
+}
+.navigasjon{
+height: 5vh;
+text-align: center;
+
+}
+
+.navigasjon button {
+	cursor:pointer;
+  border:none;
+  background-color: transparent;
+	font-size:14px;
+	padding:3vw;
+}
+
+#lasteSkjerm{
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  margin:0;
+  padding:0;
+  top: 0;
+  left:0;
+  bottom: 0;
+  background-color: #B2D157;
+  text-align: center;
+}
+
+.laster {
+  width: 10px;
+  height: 100px;
+  background-color: #EA8FB6 ;
+  animation-name: spin;
+  animation-duration: 5000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  margin-left: auto;
+  margin-top: 30vh;
+  margin-right: auto;
+}
+
+@keyframes spin {
+    from {
+        transform:rotate(0deg);
+    }
+    to {
+        transform:rotate(360deg);
+    }
+}
+
+.navigasjon button:hover {
+  -webkit-transform: scale(1.3);
+  -ms-transform: scale(1.3);
+  transform: scale(1.3);
+  color: #EA8FB6;
+
+}
+.navigasjon button:active {
+	position:relative;
+	top:2px;
+}
+
+button:focus {outline:0;}
+
+
+.innhold{
+padding: 50px;
+font-size: 16px;
+display: none;
+}
+
+.synligSide{
+  display: block;
+}
+
+
+#introduksjon{
+}
+
+#oversikt{
+}
+
+#detaljer{
+}
+
+#sammenligning{
+}
+
+
+.sokefelt{
+height: 40px;
+border: 2px solid #EA8FB6;
+font-size: 16px;
+padding: 5px;
+padding-left: 10px;
+width: 95%;
+margin-top: 20px;
+
+}
+
+.sokeKnapp{
+  height: 40px;
+  width: 20%;
+  background-color: #EA8FB6;
+  border: 2px solid #EA8FB6;
+  padding: 5px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: 40%;
+  margin-right: 40%;
+
+}
+
+.sokeKnapp:hover{
+  background-color: #B2D157;
+  border: 2px solid #B2D157;
+
+}
+.sokeKnapp:active{
+  background-color: white;
+
+}
+
+
+table{
+border-collapse: collapse;
+width: 100%;
+}
+th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #EA8FB6;
+  color: white;
+}
+tr, th, td{
+  border: 1px solid black;
+  padding: 8px;
+}
+
+
+
+tr:nth-child(even){
+  background-color: #FFFEFC;
+}
+
+.positivVekst{
+  color: #B2D157;
+}
+
+.negativVekst{
+  color:  #941017;
+}
+
+.noytralVekst{
+  color: #e8af02;
+}
+
+.bunntekst{
+  background-color: #B2D157;
+  color: white;
+  position: absolute;
+     left: 0;
+     bottom: 0;
+     height: 150px;
+     width: 100%;
+     text-align: center;
+     overflow: hidden;
+
+}
+
+ul {
+  list-style-type: none;
+ }
+
+
+
+ .detaljTabell{
+
+ }
+
+.detaljTabell tr {
+  width: 100%;
+  padding: 0px;
+}
+
+.detaljTabell td {
+
+}
+
+@media screen and (max-width:767px) {
+    .detaljTabell td{
+        display: block;
+
+
+    }
+    .detaljTabell tr {
+        display: table-cell;
+    }
+}
