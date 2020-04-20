@@ -9,8 +9,8 @@ var utdanningsData;
 var utdanningsDatasett;
 
 var gyldigeKommuneNr = [];
+var fellesAarstall = [];
 var data;
-
 
 window.onload = start
 
@@ -21,7 +21,10 @@ function start(){
    data.onLoad = function(){
 
      gyldigeKommuneNr = finnFelles("kommunenummer");
-     //skrivOversiktstabell();
+     fellesAarstall = finnFelles('aarstall');
+
+     skrivOversiktstabell();
+     settOppEventListeners();
 
     var lasteSkjerm = document.getElementById("lasteSkjerm")
     lasteSkjerm.style.display = "none"
@@ -103,16 +106,82 @@ function Data(url){
   this.onLoad = null;
 }
 
- function sjekkInput(input) {
+//diverse
+function sjekkInput(input, error) {
     if (input === "") {
-      alert("Skriv inn noe i input feltet")
+      error.innerText = "Skriv noe i input feltet!";
       throw "Ugyldig input"
     }else if(!gyldigeKommuneNr.includes(input)){
-      alert("Skriv inn et gyldig kommunenummer")
+      error.innerText = "Skriv inn et gyldig kommunenummer!"
       throw "Ugyldig kommunenummer"
+    }else{
+      error.innerText = ""
+    }
+  }
+function settOppEventListeners(){
+
+var input = document.getElementById("kommuneNavn");
+
+input.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+    document.getElementById("detaljKnapp").click();
+  }
+});
+
+var input1 = document.getElementById("kommuneNavnEn");
+var input2 = document.getElementById("kommuneNavnTo");
+
+input1.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+    document.getElementById("sammenlignKnapp").click();
+  }
+});
+input2.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+    document.getElementById("sammenlignKnapp").click();
+  }
+});
+
+
+
+}
+function finnFelles(data){
+
+  var felles = [];
+  var befolkning;
+  var utdanning;
+  var sysselsetting;
+
+  if(data === "kommunenummer"){
+    befolkning = hentDataliste(befolkningsData, "nr");
+    utdanning = hentDataliste(utdanningsData, "nr");
+    sysselsetting = hentDataliste(sysselsettingsData, "nr");
+
+  }else if(data === "aarstall"){
+    befolkning = Object.keys(befolkningsData.Halden.Menn);
+    utdanning = Object.keys(utdanningsData.Halden['01'].Menn);
+    sysselsetting = Object.keys(befolkningsData.Halden.Menn);
+  }
+
+  for (var i = 0; i < befolkning.length && i < sysselsetting.length; i++) {
+    for (var j = 0; j < sysselsetting.length; j++) {
+     for (var k = 0; k < utdanning.length; k++) {
+        if(befolkning[i] === sysselsetting[j] && befolkning[i] === utdanning[k]){
+         felles.push(befolkning[i]);
+        }
+      }
     }
   }
 
+  return felles;
+}
+function sjekkAntallKommuner(){
+  console.log("Felles kommunenummer: " + finnFelles("kommunenummer").length);
+  console.log("Kommuner i befolkningsData: " + Object.keys(befolkningsData).length);
+  console.log("Kommuner i sysselsettingsData: " + Object.keys(sysselsettingsData).length);
+  console.log("Kommuner i utdanningsData: " + Object.keys(utdanningsData).length);
+  console.log("Her kan vi sjå at utdannings API har fleire kommuner enn dei andre og at befolkning og sysselsetting har en kommune som ikkje er felles.");
+}
 
 //hjelpefunksjoner som henter ut data fra datasettene
 function hentDataliste(datasett, datatype){
@@ -149,14 +218,17 @@ if(kommunenr === befolkningsData[key].kommunenummer){
       case "navn":
         return key;
         break;
-      case "befolkning":
+      case "antall":
          return finnBefolkning(befolkningsData[key].Menn, befolkningsData[key].Kvinner);
+        break;
+      case "kvinner":
+         return befolkningsData[key].Kvinner[fellesAarstall[fellesAarstall.length-1]];
+         break;
+      case "menn":
+        return befolkningsData[key].Menn[fellesAarstall[fellesAarstall.length-1]];
         break;
       case "vekst":
         return finnBefolkningsvekst(befolkningsData[key].Menn, befolkningsData[key].Kvinner);
-        break;
-      case "sysselsetting":
-        return befolkningsData[key]["Begge kjønn"];
         break;
       case "element":
         return befolkningsData[key];
@@ -180,8 +252,8 @@ if(kommunenr === sysselsettingsData[key].kommunenummer){
       case "navn":
         return key;
         break;
-      case "sysselsetting":
-        return sysselsattesData[key]["Begge kjønn"];
+      case "sysselatteProsent":
+        return sysselsettingsData[key]["Begge kjønn"][fellesAarstall[fellesAarstall.length-1]];
         break;
       case "element":
         return sysselsettingsData[key];
@@ -205,6 +277,10 @@ if(kommunenr === utdanningsData[key].kommunenummer){
       case "navn":
         return key;
         break;
+      case "hoyereUtdannede":
+        return (utdanningsData[key]["03a"].Menn[fellesAarstall[fellesAarstall.length-1]] * hentDataBefolkning(kommunenr, "menn") /100) +
+               (utdanningsData[key]["03a"].Kvinner[fellesAarstall[fellesAarstall.length-1]] * hentDataBefolkning(kommunenr, "kvinner")/100);
+        break;
       case "element":
         return utdanningsData[key];
         break;
@@ -218,84 +294,178 @@ if(kommunenr === utdanningsData[key].kommunenummer){
   }
 }
 
-//skriver oversikt innhold
+//navbar
+function visSide(side){
+
+
+  var divs = document.getElementsByClassName("innhold");
+
+      for (let d = 0; d < divs.length; d++) {
+          if (divs[d].classList.contains("synligSide")) {
+             divs[d].classList.remove("synligSide");
+         }
+      }
+    var divid = document.getElementById(side.name).classList.add("synligSide");
+
+    var navButtons = document.getElementsByClassName("nav-button")
+    for(let j = 0; j< navButtons.length;j++){
+      if(navButtons[j].name === side.name){
+        navButtons[j].classList.add("active-btn")
+      }else{
+        navButtons[j].classList.remove("active-btn")
+      }
+    }
+}
+
+//oversikt
 function skrivOversiktstabell() {
 
-  var tabell = document.getElementById("oversiktsTabell")
+  var tabell = document.getElementById("oversiktsTabell");
+
+
+  var header = tabell.createTHead();
+  var rad = header.insertRow();
+
+  var navn = document.createElement("th");
+  var nr = document.createElement("th");
+  var befolkning = document.createElement("th");
+  var befolkningsvekst = document.createElement("th");
+
+  navn.innerText = "Navn";
+  nr.innerText = "Kommunenummer"
+  befolkning.innerText = "Befolkning";
+  befolkningsvekst.innerText = "Befolkningsvekst";
+
+  rad.appendChild(navn);
+  rad.appendChild(nr);
+  rad.appendChild(befolkning);
+  rad.appendChild(befolkningsvekst);
 
   for (var key in befolkningsData) {
 
-    var rad = tabell.insertRow(1);
+    var r = tabell.insertRow(1);
 
-    var kommune = rad.insertCell(0);
-    var nr = rad.insertCell(1);
-    var befolkning = rad.insertCell(2);
-    var vekst = rad.insertCell(3);
+    var kommune = r.insertCell(0);
+    var nr = r.insertCell(1);
+    var befolkning = r.insertCell(2);
+    var vekst = r.insertCell(3);
 
     kommune.innerText = key;
     nr.innerText = befolkningsData[key].kommunenummer;
-//   console.log("TEST" + Object.values(befolkningsData[key].Menn));
     befolkning.innerText = finnBefolkning(befolkningsData[key].Menn, befolkningsData[key].Kvinner);
     let ve = finnBefolkningsvekst(befolkningsData[key].Menn, befolkningsData[key].Kvinner);
     if ( ve > 0) {
-      vekst.className += "positivVekst";
+      vekst.className += "positiv";
     }else if(ve < 0){
-      vekst.className += "negativVekst";
+      vekst.className += "negativ";
     }else{
-      vekst.className += "noytralVekst";
+      vekst.className += "noytral";
     }
     vekst.innerText = ve + " %";
 
 
   }
 }
+function finnBefolkning(menn, kvinner){
+
+  return Object.values(menn).pop() + Object.values(kvinner).pop();
+
+}
+function finnBefolkningsvekst(menn, kvinner){
+
+var current = Object.values(menn).reverse()[0] + Object.values(kvinner).reverse()[0];
+var last = Object.values(menn).reverse()[1] + Object.values(kvinner).reverse()[1];
+
+if(last === 0){
+  return "Ingen data";
+}
+
+let sum = (current-last)/last*100+""
+
+return sum.substr(0,4)
+}
+
+//detaljer
+function visDetaljer(input, error){
+
+
+  //sjekk inputFelt
+  sjekkInput(input, error);
+
+  //skriv detlajer
+  visKommuneInfo(input);
+
+  //skriv befolkningstabell
+  var tittel = document.getElementById('befolkningsvekst');
+  tittel.innerText = " Befolkningsvekst";
+
+  skrivDetaljTabell(input, befolkningsData, "befolkningsData");
+
+  //skriv sysselsettingstabell
+  var tittel = document.getElementById('sysselsettingsvekst');
+  tittel.innerText = "Sysselsettingsvekst"
+
+  skrivDetaljTabell(input, sysselsettingsData, "sysselsettingsData");
+
+  //skriv utdanningstabell
+  var tittel = document.getElementById('utdanningsvekst');
+  tittel.innerText = "Utdanningsvekst"
+
+  skrivDetaljTabell(input, utdanningsData, "utdanningsData");
+
+}
+function visKommuneInfo(input){
+
+  var ul = document.getElementById("kommuneInfo")
+  ul.innerHTML = "";
+
+  var kommune = hentDataBefolkning(input, "navn");
+  var befolkning = hentDataBefolkning(input, "antall")
+  var sysselsatteProsent = Math.round(hentDataSysselsetting(input, "sysselatteProsent") *10)/10;
+  var sysselsatte = Math.round((sysselsatteProsent*befolkning)/100);
+  var utdanning = Math.round(hentDataUtdanning(input, "hoyereUtdannede"));
+  var utdanningProsent = Math.round((utdanning/befolkning)*100 * 10) / 10;
+
+  var li1 = document.createElement("li");
+  var li2 = document.createElement("li");
+  var li3 = document.createElement("li");
+  var li4 = document.createElement("li");
+  var li5 = document.createElement("li");
+
+  li1.innerText = kommune + " kommune";
+  li1.style.fontSize = '30px';
+  li2.innerText = "Kommune nr: " + input;
+  li3.innerText = "Befolkning: " + befolkning;
+  li4.innerText = "Innbyggere som er sysselsatte: " + sysselsatte + " stk eller " + sysselsatteProsent + "%";
+  li5.innerText = "Innbyggere med høyere utdanning: " + utdanning + " stk eller " + utdanningProsent + "%";
+
+
+  ul.appendChild(li1)
+  ul.appendChild(li2)
+  ul.appendChild(li3)
+  ul.appendChild(li4)
+  ul.appendChild(li5)
+
+}
 function skrivDetaljTabell(input, datasett, data){
 
-console.log(data);
 var tabell = document.getElementById(data);
 tabell.innerHTML = '';
-console.log(tabell);
 tabell.setAttribute('class', 'detaljTabell');
 
 //document.getElementById('detaljer').appendChild(tabell);
 
- var header = tabell.createTHead();
- var rad = header.insertRow(0);
- var celle = rad.insertCell(0);
- celle.innerText = "kategori";
- var n = 0;
+var header = tabell.createTHead();
+var rad = header.insertRow();
 
-//finner felles årstall
-/*
-var aarstallBefolkning = Object.keys(befolkningsData.Halden.Menn);
-var aarstallUtdanning = Object.keys(utdanningsData.Halden['01'].Menn);
-var aarstallSysselsetting = Object.keys(sysselsettingsData.Halden.Menn);
-
-var fellesAarstall = [];
-
-for (var i = 0; i < aarstallBefolkning.length && i < aarstallSysselsetting.length; i++) {
-  for (var j = 0; j < aarstallSysselsetting.length; j++) {
-   for (var k = 0; k < aarstallUtdanning.length; k++) {
-      if(aarstallBefolkning[i] === aarstallSysselsetting[j] && aarstallBefolkning[i] == aarstallUtdanning[k]){
-       fellesAarstall.push(aarstallBefolkning[i]);
-       n++;
-       celle = rad.insertCell(n);
-       celle.innerText = aarstallBefolkning[i];
-
-      }
-    }
-  }
-}
-*/
-
-//test
-
-var fellesAarstall = finnFelles('aarstall');
+var kategorier = document.createElement("th");
+kategorier.innerText = "Kategorier";
+rad.appendChild(kategorier);
 
 for(aar in fellesAarstall){
-  n++;
-  celle = rad.insertCell(n);
-  celle.innerText = fellesAarstall[aar];
+  var ar = document.createElement("th");
+  ar.innerText = fellesAarstall[aar];
+  rad.appendChild(ar);
 }
 
 
@@ -306,7 +476,7 @@ if(datasett === befolkningsData){
 }else if(datasett === sysselsettingsData){
   var kommuneElement = hentDataSysselsetting(input, "element");
     printTabell(kommuneElement, tabell, fellesAarstall);
-}else if( datasett === utdanningsData){
+}else if(datasett === utdanningsData){
   var kommuneElement = hentDataUtdanning(input, "element");
   printTabellUtdanning(kommuneElement, tabell, fellesAarstall);
 }else {
@@ -330,17 +500,17 @@ function printTabell(kommuneElement, tabell, fellesAarstall){
           for (var p = 0; p < fellesAarstall.length; p++) {
 
 
-          celle = rad.insertCell(0);
+          celle = rad.insertCell();
           celle.innerText = kommuneElement[kjonn[i]][fellesAarstall[p]];
       }
 
     }
   }
 }
-
 function printTabellUtdanning(kommuneElement, tabell, fellesAarstall){
 
-  var kategorier = Object.keys(kommuneElement)
+  var kategorier = Object.keys(utdanningsDatasett.datasett.kategorier);
+  var kategoriNavn = Object.values(utdanningsDatasett.datasett.kategorier);
 
    for (var i = 0; i < kategorier.length; i++) {
      if(kategorier[i] !== 'kommunenummer'){
@@ -351,11 +521,12 @@ function printTabellUtdanning(kommuneElement, tabell, fellesAarstall){
 
           var rad = tabell.insertRow(1);
           var kategori = rad.insertCell(0);
-          kategori.innerText = kjonn[j] + " " + kategorier[i];
+          kategori.innerText = kategoriNavn[i] + " " + kjonn[j] ;
+
 
           for (var p = 0; p < fellesAarstall.length; p++) {
 
-            celle = rad.insertCell(0);
+            celle = rad.insertCell();
             celle.innerText = kommuneElement[kategorier[i]][kjonn[j]][fellesAarstall[p]];
 
           }
@@ -366,66 +537,12 @@ function printTabellUtdanning(kommuneElement, tabell, fellesAarstall){
 }
 }
 
-//Sørger for at navbar viser rett side
-function visSide(side){
-
-
-  var divs = document.getElementsByClassName("innhold");
-
-      for (let d = 0; d < divs.length; d++) {
-          if (divs[d].classList.contains("synligSide")) {
-             divs[d].classList.remove("synligSide");
-         }
-      }
-    var divid = document.getElementById(side).classList.add("synligSide");
-}
-
-function visDetaljer(input){
-
-
-  //sjekk inputFelt
-  sjekkInput(input);
-
-  //skriv detlajer
-  visKommuneInfo(input);
-
-  //skriv befolkningstabell
-  var tittel = document.getElementById('befolkningsvekst');
-  tittel.innerHTML = '';
-  var tekst = document.createTextNode("Befolkningsvekst");
-
-  tittel.appendChild(tekst);
-  document.getElementById('detaljer').appendChild(tittel);
-
-  skrivDetaljTabell(input, befolkningsData, "befolkningsData");
-
-  //skriv sysselsettingstabell
-  var tittel = document.getElementById('sysselsettingsvekst');
-  var tekst = document.createTextNode("Sysselsettingsvekst");
-  tittel.appendChild(tekst);
-  document.getElementById('detaljer').appendChild(tittel);
-
-  skrivDetaljTabell(input, sysselsettingsData, "sysselsettingsData");
-
-  //skriv utdanningstabell
-  var tittel = document.getElementById('utdanningsvekst');
-  var tekst = document.createTextNode("Utdanningsvekst");
-  tittel.appendChild(tekst);
-  document.getElementById('detaljer').appendChild(tittel);
-
-  skrivDetaljTabell(input, utdanningsData, "utdanningsData");
-
-}
-
-function visSammenligning(input1, input2){
-    sjekkInput(input1);
-    sjekkInput(input2);
+//sammenligning
+function visSammenligning(input1, input2, error1, error2){
+    sjekkInput(input1, error1);
+    sjekkInput(input2, error2);
     skrivSammenligningsTabell(input1, input2);
 }
-
-
-
-
 function skrivSammenligningsTabell(kommunenr1, kommunenr2) {
 
 
@@ -435,6 +552,8 @@ function skrivSammenligningsTabell(kommunenr1, kommunenr2) {
   var kommune1Navn;
   var kommune2;
   var kommune2Navn;
+  var kommune1Score = 0;
+  var kommune2Score = 0;
 
   for (var key in utdanningsData) {
     if(kommunenr1 === utdanningsData[key].kommunenummer){
@@ -447,71 +566,61 @@ function skrivSammenligningsTabell(kommunenr1, kommunenr2) {
   }
 
 
-  var header = tabell.insertRow(0);
+  var header = tabell.createTHead();
+  var rad = header.insertRow();
 
-  var kategorier = header.insertCell(0);
-  var kommuneEn = header.insertCell(1);
-  var kommuneTo = header.insertCell(2);
-  var vinner = header.insertCell(3);
+  var kategorier = document.createElement("th");
+  var kommuneEn = document.createElement("th");
+  var kommuneTo = document.createElement("th");
+  var vinner = document.createElement("th");
 
   kategorier.innerText = "Kategorier";
   kommuneEn.innerText = kommune1Navn;
   kommuneTo.innerText = kommune2Navn;
   vinner.innerText = "Vinner"
 
+  rad.appendChild(kategorier);
+  rad.appendChild(kommuneEn);
+  rad.appendChild(kommuneTo);
+  rad.appendChild(vinner);
 
 
-    //kommuneEn.innerText = Object.values(kommune1['01'].Menn).pop();
-//   console.log("TEST" + Object.values(befolkningsData[key].Menn));
-    //kommuneTo.innerText = Object.values(kommune2['01'].Menn).pop();
-
-
-  // gammel kategorier var kategorier = Object.keys(kommune1)
-  //ny Kategorier
   var kategorier = Object.keys(utdanningsDatasett.datasett.kategorier);
   var kategorierNavn = Object.values(utdanningsDatasett.datasett.kategorier);
 
-  console.log(kategorier);
+
+
    for (var i = 0; i < kategorier.length; i++) {
-
-
        var kjonn = Object.keys(kommune1[kategorier[i]])
-        //console.log(kjonn.length);
         for (var j = 0; j < kjonn.length; j++) {
+         var vinner = printRad(tabell, kjonn[j], kategorier[i], kommune1, kommune2, kategorierNavn[i])
 
-        // console.log(kjonn[j]);
-         printRad(tabell, kjonn[j], kategorier[i], kommune1, kommune2, kategorierNavn[i])
+        if(vinner === "k1"){
+          kommune1Score++;
+        }else if(vinner === "k2"){
+          kommune2Score++;
         }
-//går gjennom kver kategori
-
-  //  console.log(kategorier[i]);
-    //console.log(kommune1[kategorier[i]].Menn);
-
-/*
-    kommuneTo.innerText = Object.values(kommune1[kategorier[i]].Menn).pop();
-*/
-    //printRad(tabell, "Kvinner", kategorier[i], kommune1)
-    //printRad(tabell, "Menn", kategorier[i], kommune1)
-
-
+        }
 
 
 }
-var rad = tabell.insertRow(1);
+
+
+var rad = tabell.insertRow();
+rad.style.fontWeight = "bold";
 
 var kat = rad.insertCell(0);
 var kommuneEn = rad.insertCell(1);
 var kommuneTo = rad.insertCell(2);
 var vinner = rad.insertCell(3);
 
-kat.innerText = "Sammenlagt: ";
-kommuneEn.innerText = "-";
-kommuneTo.innerText = "-";
-vinner.innterText = "den med flest seiere";
+kat.innerText = "Sammenlagt vinner: ";
+kommuneEn.innerText = kommune1Score;
+kommuneTo.innerText = kommune2Score;
+vinner.innerText = (kommune1Score >= kommune2Score ? (kommune1Score===kommune2Score ? "uavgjort" : kommune1Navn): kommune2Navn)
 
 
 }
-
 function printRad(tabell, kjonn, kategorier, kommune1, kommune2, kategorierNavn){
 
   var rad = tabell.insertRow(1);
@@ -520,133 +629,15 @@ function printRad(tabell, kjonn, kategorier, kommune1, kommune2, kategorierNavn)
   var kommuneEn = rad.insertCell(1);
   var kommuneTo = rad.insertCell(2);
   var vinner = rad.insertCell(3);
-
-  kat.innerText = kjonn + ": " + kategorierNavn;
-  kommuneEn.innerText = Object.values(kommune1[kategorier][kjonn]).pop();
-  kommuneTo.innerText = Object.values(kommune2[kategorier][kjonn]).pop();
-  vinner.innerText = finnVinner(kommune1, kommune2, kategorier, kjonn);
-  console.log(finnVinner(kommune1, kommune2, kategorier, kjonn));
-}
-
-function finnVinner(kommune1, kommune2, kategorier, kjonn){
-
-  if(Object.values(kommune1[kategorier][kjonn]).pop() < Object.values(kommune2[kategorier][kjonn]).pop() ){
-  return hentDataUtdanning(kommune2.kommunenummer, "navn");
-}else if(Object.values(kommune2[kategorier][kjonn]).pop() < Object.values(kommune1[kategorier][kjonn]).pop() ){
-  return hentDataUtdanning(kommune1.kommunenummer, "navn");
-}else{
-  return "uavgjort"
-}
-
-}
-
-
-function finnBefolkning(menn, kvinner){
-
-  return Object.values(menn).pop() + Object.values(kvinner).pop();
-
-}
-
-function finnBefolkningsvekst(menn, kvinner){
-
-var current = Object.values(menn).reverse()[0] + Object.values(kvinner).reverse()[0];
-var last = Object.values(menn).reverse()[1] + Object.values(kvinner).reverse()[1];
-
-if(last === 0){
-  return "Ingen data";
-}
-
-let sum = (current-last)/last*100+""
-
-return sum.substr(0,4)
-}
-
-function finnUtdanningsvekst(nr, aar){
-
-
-  var current = Object.values(utdanningsdata[key].Menn[aar]).reverse()[0] + Object.values(kvinner).reverse()[0];
-  var last = Object.values(menn).reverse()[1] + Object.values(kvinner).reverse()[1];
-
-  if(last === 0){
-    return "Ingen data";
-  }
-
-  let sum = (current-last)/last*100+""
-
-  return sum.substr(0,4)
-}
-
-
-function visKommuneInfo(input){
-
-  var kommune = hentDataBefolkning(input, "navn");
-  var befolkning = hentDataBefolkning(input, "befolkning")
-  var sysselsatte = hentDataSysselsetting(input, "sysselsatte")
-  var utdanning = hentDataUtdanning(input, "utdanning");
-
-
-  var ul = document.getElementById("liste")
-
-  //oppretter et <li></li>-element
-  var li1 = document.createElement("li");
-  var li2 = document.createElement("li");
-  var li3 = document.createElement("li");
-  var li4 = document.createElement("li");
-  var li5 = document.createElement("li");
-
-  //oppretter en tekst-node
-  li1.innerText = kommune;
-  li2.innerText = "Kommune nr: " + input;
-  li3.innerText = "Befolkning: " + befolkning;
-  li4.innerText = "Sysselsetting: " + sysselsatte;
-  li5.innerText = "Utdanning: "
-
-
-  //fester <li></li>-elementet til <ul></ul>-elementet som blir hentet fra html-siden på linje 54
-  ul.appendChild(li1)
-  ul.appendChild(li2)
-  ul.appendChild(li3)
-  ul.appendChild(li4)
-  ul.appendChild(li5)
-
-}
-
-function finnFelles(data){
-
-  var felles = [];
-  var befolkning;
-  var utdanning;
-  var sysselsetting;
-
-  if(data === "kommunenummer"){
-    befolkning = hentDataliste(befolkningsData, "nr");
-    utdanning = hentDataliste(utdanningsData, "nr");
-    sysselsetting = hentDataliste(sysselsettingsData, "nr");
-
-  }else if(data === "aarstall"){
-    befolkning = Object.keys(befolkningsData.Halden.Menn);
-    utdanning = Object.keys(utdanningsData.Halden['01'].Menn);
-    sysselsetting = Object.keys(befolkningsData.Halden.Menn);
-  }
-
-  for (var i = 0; i < befolkning.length && i < sysselsetting.length; i++) {
-    for (var j = 0; j < sysselsetting.length; j++) {
-     for (var k = 0; k < utdanning.length; k++) {
-        if(befolkning[i] === sysselsetting[j] && befolkning[i] === utdanning[k]){
-         felles.push(befolkning[i]);
-        }
-      }
-    }
-  }
-
-  return felles;
-}
-
-//test the content of the json-files
-function sjekkAntallKommuner(){
-  console.log("Felles kommunenummer: " + finnFelles("kommunenummer").length);
-  console.log("Kommuner i befolkningsData: " + Object.keys(befolkningsData).length);
-  console.log("Kommuner i sysselsettingsData: " + Object.keys(sysselsettingsData).length);
-  console.log("Kommuner i utdanningsData: " + Object.keys(utdanningsData).length);
-  console.log("Her kan vi sjå at utdannings API har fleire kommuner enn dei andre og at befolkning og sysselsetting har en kommune som ikkje er felles.");
+  var scoreTobeReturnedK1 = 0;
+  kat.innerText = kategorierNavn + " " + kjonn;
+  var kommuneEnVerdi =  Object.values(kommune1[kategorier][kjonn]).pop();
+  var kommuneToVerdi = Object.values(kommune2[kategorier][kjonn]).pop();
+  kommuneEn.innerText = kommuneEnVerdi;
+  kommuneEn.className += (kommuneEnVerdi >= kommuneToVerdi ? (kommuneEnVerdi===kommuneToVerdi ? "noytral" : "positiv"): "negativ")
+  kommuneTo.innerText = kommuneToVerdi;
+  kommuneTo.className += (kommuneToVerdi >= kommuneEnVerdi ? (kommuneEnVerdi===kommuneToVerdi ? "noytral" : "positiv"): "negativ")
+var vinnerText;
+  vinner.innerText = (kommuneEnVerdi >= kommuneToVerdi ? (kommuneEnVerdi===kommuneToVerdi ? "uavgjort" : (vinnerText = "k1", hentDataUtdanning(kommune1.kommunenummer, "navn") ))   : (vinnerText ="k2",hentDataUtdanning(kommune2.kommunenummer, "navn")))
+return vinnerText
 }

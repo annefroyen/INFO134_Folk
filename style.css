@@ -1,14 +1,14 @@
 
 html{
   position: relative;
-min-height: 100%;
 }
+
 body{
   background-color: #F7F2E3;
   margin-left: 10vw;
   margin-right: 10vw;
   margin-bottom: 150px;
-  font-family: 'Roboto', sans-serif;
+  font-family: sans-serif;
 }
 
 #tittel{
@@ -16,10 +16,10 @@ body{
   text-align:center;
   margin-bottom: 20px;
 }
-.navigasjon{
-height: 5vh;
-text-align: center;
 
+.navigasjon{
+  height: 5vh;
+  text-align: center;
 }
 
 .navigasjon button {
@@ -31,11 +31,8 @@ text-align: center;
 }
 
 #lasteSkjerm{
-  height: 100%;
   width: 100%;
   position: fixed;
-  margin:0;
-  padding:0;
   top: 0;
   left:0;
   bottom: 0;
@@ -79,6 +76,9 @@ text-align: center;
 
 button:focus {outline:0;}
 
+.active-btn{
+  color: #EA8FB6;
+}
 
 .innhold{
 padding: 50px;
@@ -90,29 +90,14 @@ display: none;
   display: block;
 }
 
-
-#introduksjon{
-}
-
-#oversikt{
-}
-
-#detaljer{
-}
-
-#sammenligning{
-}
-
-
 .sokefelt{
 height: 40px;
 border: 2px solid #EA8FB6;
 font-size: 16px;
 padding: 5px;
 padding-left: 10px;
-width: 95%;
+width: 100%;
 margin-top: 20px;
-
 }
 
 .sokeKnapp{
@@ -125,7 +110,6 @@ margin-top: 20px;
   margin-bottom: 20px;
   margin-left: 40%;
   margin-right: 40%;
-
 }
 
 .sokeKnapp:hover{
@@ -135,41 +119,44 @@ margin-top: 20px;
 }
 .sokeKnapp:active{
   background-color: white;
-
 }
 
+.error{
+  color: red;
+  font-style: italic;
+}
 
 table{
 border-collapse: collapse;
 width: 100%;
 }
+
 th {
   padding-top: 12px;
   padding-bottom: 12px;
   text-align: left;
-  background-color: #EA8FB6;
+  background-color: #B2D157;
   color: white;
 }
+
 tr, th, td{
   border: 1px solid black;
   padding: 8px;
 }
 
-
-
 tr:nth-child(even){
   background-color: #FFFEFC;
 }
 
-.positivVekst{
+.positiv{
   color: #B2D157;
 }
 
-.negativVekst{
-  color:  #941017;
+.negativ{
+  color:  #ff4419;
 }
 
-.noytralVekst{
+.noytral{
   color: #e8af02;
 }
 
@@ -183,17 +170,11 @@ tr:nth-child(even){
      width: 100%;
      text-align: center;
      overflow: hidden;
-
 }
 
 ul {
   list-style-type: none;
- }
-
-
-
- .detaljTabell{
-
+  padding-left: 0;
  }
 
 .detaljTabell tr {
@@ -201,17 +182,35 @@ ul {
   padding: 0px;
 }
 
-.detaljTabell td {
-
-}
-
 @media screen and (max-width:767px) {
-    .detaljTabell td{
+
+    .detaljTabell th, .detaljTabell td {
         display: block;
-
-
+        height: 120px;
+        align-items: center;
     }
-    .detaljTabell tr {
+
+    .detaljTabell tr{
         display: table-cell;
+
     }
+    .detaljTabell{
+      display: block;
+      height:auto;
+      table-layout: fixed;
+    }
+
+    .innhold{
+      padding:0px;
+      margin-top: 50px;
+      margin-bottom: 200px;
+      word-wrap: break-word;
+    }
+
+    table{
+      display: block;
+      overflow-x: scroll;
+      max-width: 600px;
+    }
+
 }

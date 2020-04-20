@@ -2,32 +2,34 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>FOLK</title>
     <script  type="text/javascript" src="script.js" defer></script>
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <h1 id="tittel">FOLK</h1>
-<nav class="navigasjon">
 
-  <button onclick="visSide(this.name)" type="button" name="introduksjon">Introduksjon</button>
-  <button onclick="visSide(this.name)" type="button" name="oversikt">Oversikt</button>
-  <button onclick="visSide(this.name)" type="button" name="detaljer">Detaljer</button>
-  <button onclick="visSide(this.name)" type="button" name="sammenligning">Sammenligning</button>
+    <div id="lasteSkjerm">
+      <h1>Laster Data</h1>
+      <p>Dette burde kun ta noen millisekund</p>
+      <div class="laster"></div>
+    </div>
+
+    <h1 id="tittel">FOLK</h1>
+
+<nav class="navigasjon">
+  <button onclick="visSide(this)"class="nav-button" type="button" name="introduksjon">Introduksjon</button>
+  <button onclick="visSide(this)" class="nav-button" type="button" name="oversikt">Oversikt</button>
+  <button onclick="visSide(this)" class="nav-button" type="button" name="detaljer">Detaljer</button>
+  <button onclick="visSide(this)" class="nav-button" type="button" name="sammenligning">Sammenligning</button>
 </nav>
 
-  <div id="lasteSkjerm">
 
-    <h1>Laster Data</h1>
-    <p>Dette burde kun ta noen millisekund</p>
-    <div class="laster"></div>
-
-  </div>
 
 
   <div class="innhold synligSide" id="introduksjon">
 
-    <h1>Om nettsiden</h1>
+    <h1>Introduksjon</h1>
 
     <p>Denne siden er et verktøy for å hente ut data om folk i kommunane.
     Vi har tatt utgangspunkt i data hentet fra Statistisk Sentral Byrå via deres åpne API.
@@ -71,42 +73,32 @@
 
   <div class="innhold" id="oversikt">
 
-   <h1>Kommuneoversikt</h1>
-
-    <table id="oversiktsTabell">
-     <tr>
-      <th>Navn</th>
-      <th>Kommune nr</th>
-      <th>Befolkning per nyeste telling</th>
-      <th>Befolkingsvekst i prosent</th>
-   </tr>
-   </table>
-
+   <h1>Oversikt</h1>
+   <p>Her finn du ein oversikt over alle norges kommuner.</p>
+    <table id="oversiktsTabell"></table>
   </div>
 
 
-
-
-
   <div class="innhold" id="detaljer">
-<h1>Finn detaljer om en kommune</h1>
-  <p>Skriv inn kommunenummer for å hent info om kommunen</p>
+<h1>Detaljer</h1>
+  <p>Skriv inn et kommunenummer for å hent informasjon om kommunens befolknings-, sysselsettings- og utdanningsvekst.</p>
 
 
-  <input class="sokefelt" id="kommuneNavn" value ="0101" type="text" placeholder="Skriv et kommunenr. td. 0101 (Halden)">
-  <button onclick="visDetaljer(kommuneNavn.value)" class="sokeKnapp" type="button">🔍</button>
+  <input class="sokefelt" id="kommuneNavn" type="text" placeholder="Skriv et kommunenr. td. 0101 (Halden)">
+  <p id="dError" class="error"></p>
+  <button onclick="visDetaljer(kommuneNavn.value, dError)" class="sokeKnapp" id="detaljKnapp" type="button">🔍</button>
 
-  <ul id="liste"></ul>
+  <ul id="kommuneInfo"></ul>
 
-<h2 id="befolkningsvekst"></h2>
+<h3 id="befolkningsvekst"></h3>
   <table id="befolkningsData">
   </table>
 
-<h2 id="sysselsettingsvekst"></h2>
+<h3 id="sysselsettingsvekst"></h3>
   <table id="sysselsettingsData">
   </table>
 
-<h2 id="utdanningsvekst"></h2>
+<h3 id="utdanningsvekst"></h3>
   <table id="utdanningsData">
   </table>
 
@@ -115,12 +107,14 @@
   </div>
 
   <div class="innhold" id="sammenligning">
-    <h1>Sammenlign to kommuner</h1>
-    <p>Skriv inn kommunenummer for sammenligne</p>
+    <h1>Sammenligning</h1>
+    <p>Skriv inn to kommunenummer for å sammenligne utdanningsnivået på deres innbyggere.</p>
 
-    <input class="sokefelt" id="kommuneNavnEn" value="0104" type="text" placeholder="Skriv et kommunenr. td. 0104 (Sarpsborg)">
-    <input class="sokefelt" id="kommuneNavnTo" value="0121" type="text" placeholder="Skriv et annet kommunenr. td. 0121 (Rømskog)">
-    <button onclick="visSammenligning(kommuneNavnEn.value, kommuneNavnTo.value)" class="sokeKnapp" type="button">🔍</button>
+    <input class="sokefelt" id="kommuneNavnEn" type="text" placeholder="Skriv et kommunenr. feks. 0104 (Sarpsborg)">
+    <p id="s1Error" class="error"></p>
+    <input class="sokefelt" id="kommuneNavnTo" type="text" placeholder="Skriv et annet kommunenr. feks. 0121 (Rømskog)">
+    <p id="s2Error" class="error"></p>
+    <button onclick="visSammenligning(kommuneNavnEn.value, kommuneNavnTo.value, s1Error, s2Error)" class="sokeKnapp" id="sammenlignKnapp" type="button">🔍</button>
 
     <table id="sammenligningsTabell">  </table>
 
